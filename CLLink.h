@@ -1,3 +1,13 @@
+/**
+  * @file name:CLLink.h
+  * @brief    :Functional interface design
+  * @author   :i33akq@163.com
+  * @date     :2025/04/13
+  * @version  :1.0
+  * @note     :none
+  * @CopyRight (C)   2024-2025   i33akq@163.com   ALL Right Reseverd
+*/
+
 #ifndef CLLIST_H
 #define CLLIST_H
 

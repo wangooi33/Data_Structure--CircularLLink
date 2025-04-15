@@ -9,7 +9,8 @@
 */
 #include "CLLink.h"
 
-int main() {
+int main()
+{
     CLNode_t* list = CLList_Create();
 
     CLList_TailInsert(list, 10);

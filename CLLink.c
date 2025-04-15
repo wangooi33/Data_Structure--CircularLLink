@@ -9,7 +9,6 @@
 */
 
 #include "CLLink.h"
-
 /**
   * @function name: CLList_Create
   * @brief        : Create a circular linked list with a head node
