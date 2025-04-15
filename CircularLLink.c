@@ -1,6 +1,6 @@
 /**
   * @file name:CircularLLink.c
-  * @brief    :Circular linked list basic function realization
+  * @brief    :functional test
   * @author   :i33akq@163.com
   * @date     :2025/04/14
   * @version  :1.0

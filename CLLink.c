@@ -1,3 +1,13 @@
+/**
+  * @file name:CLLink.c
+  * @brief    :The basic function of circular single linked list
+  * @author   :i33akq@163.com
+  * @date     :2025/04/13
+  * @version  :1.0
+  * @note     :Watch it with 遍历说明.md
+  * @CopyRight (C)   2024-2025   i33akq@163.com   ALL Right Reseverd
+*/
+
 #include "CLLink.h"
 
 /**
