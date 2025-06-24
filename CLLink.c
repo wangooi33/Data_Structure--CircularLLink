@@ -2,96 +2,141 @@
   * @file name:CLLink.c
   * @brief    :The basic function of circular single linked list
   * @author   :i33akq@163.com
-  * @date     :2025/04/13
+  * @date     :2025/06/24
   * @version  :1.0
-  * @note     :Watch it with 遍历说明.md
+  * @note     :tail->next = Head->next ,the tail node points to the start node.
   * @CopyRight (C)   2024-2025   i33akq@163.com   ALL Right Reseverd
 */
 
 #include "CLLink.h"
+
 /**
   * @function name: CLList_Create
   * @brief        : Create a circular linked list with a head node
   * @param        : None
   * @retval       : Returns pointer to head node
   * @version      : 1.0
-  * @note         : None
+  * @note         : Initialize as a circular structure, and the head node does not store valid data.
 */
 CLNode_t* CLList_Create() {
-    CLNode_t* head = (CLNode_t*)malloc(sizeof(CLNode_t));
-    if (!head) return NULL;
-    head->next = head; // 初始化为循环结构，头结点不存储有效数据
-    return head;
+	CLNode_t* Head = (CLNode_t*)malloc(sizeof(CLNode_t));
+	if (!Head) return NULL;
+
+	Head->next = Head;  
+	return Head;
 }
 
 /**
   * @function name: CLList_NewNode
   * @brief        : Create a new node
-  * @param        : @data: the value to store in the new node
+  * @param        : 
+  * 				@Data: the value to store in the new node
   * @retval       : Pointer to the newly created node
   * @version      : 1.0
   * @note         : None
 */
-CLNode_t* CLList_NewNode(Elemtype_t data) {
-    CLNode_t* newNode = (CLNode_t*)malloc(sizeof(CLNode_t));
-    if (!newNode) return NULL;
-    newNode->data = data;
-    newNode->next = NULL;
-    return newNode;
+CLNode_t* CLList_NewNode(Elemtype_t Data) {
+    CLNode_t* NewNode = (CLNode_t*)malloc(sizeof(CLNode_t));
+    if(!NewNode){
+		fprintf(stderr, "calloc error,errno:%d,%s\n",errno,strerror(errno));
+		exit(CALLOC_FAILURE);
+	}
+    NewNode->data = Data;
+    NewNode->next = NULL;
+    return NewNode;
+}
+
+/**
+  * @function name: CLList_GetTail
+  * @brief        : get the tail node
+  * @param        : 
+  * 				@Data: the value to store in the new node
+  * @retval       : Pointer to the tail node
+  * @version      : 1.0
+  * @note         : None
+*/
+CLNode_t *CLList_GetTail(CLNode_t *Head)
+{
+	if(!Head) return NULL;
+	CLNode_t *tail = Head->next;
+	while(tail->next!=Head->next)
+	{
+		tail=tail->next;
+	}
+	return tail; 
+}
+
+/**
+  * @function name: CLList_Len
+  * @brief        : calculate the length of the list 
+  * @param        : 
+  * 				@Head: the list header address
+  * @retval       : the length of list
+  * @version      : 1.0
+  * @note         : None
+*/
+int CLList_Len(CLNode_t *Head)
+{
+	if(!Head || Head->next == Head) return 0;
+	int cnt = 1;
+	CLNode_t *current = Head->next;
+	while(current->next != Head->next)
+	{
+		current = current->next;
+		cnt++;
+	}
+	return cnt;
 }
 
 /**
   * @function name: CLList_Traverse
   * @brief        : Traverse and print the list
-  * @param        : @Head: the list header address
+  * @param        : 
+  * 				@Head: the list header address
   * @retval       : void
   * @version      : 1.0
   * @note         : None
 */
 void CLList_Traverse(CLNode_t* Head) {
-    if (!Head || Head->next == Head) {
+    if (IS_EMPTY_LIST(Head)) {
         printf("List is empty.\n");
         return;
     }
     CLNode_t* current = Head->next;
-    while (current != Head) {
+    do {
         printf("%d -> ", current->data);
         current = current->next;
-    }
-    printf("(head)\n");
+    } while (current != Head->next); 
+    printf("(%d 循环)\n",(Head->next)->data);
+    return; 
 }
 
 /**
   * @function name: CLList_HeadInsert
   * @brief        : Insert node after head (head insert)
   * @param        :
-  *                @Head: the list header address
-  *                @data: the data field of a circular linked list
+  *                 @Head: the list header address
+  *                 @Data: the data field of a circular linked list
   * @retval       : Insert successful return true otherwise return false
   * @version      : 1.0
   * @note         : None
 */
-bool CLList_HeadInsert(CLNode_t* Head, Elemtype_t data) {
+bool CLList_HeadInsert(CLNode_t* Head, Elemtype_t Data) {
     if (!Head) return false;
-    CLNode_t* newNode = CLList_NewNode(data);
-    if (!newNode) return false;
-
-    newNode->next = Head->next;
-    Head->next = newNode;
-
-    // 如果插入的是第一个有效节点，让它的 next 指向 Head
-    if (newNode->next == Head) {
-        newNode->next = Head;
-    } else {
-        // 找尾结点，更新其 next 指向 Head
-        CLNode_t* tail = newNode->next;
-        while (tail->next != Head) {
-            tail = tail->next;
-        }
-        tail->next = Head;
+    CLNode_t* NewNode = CLList_NewNode(Data);
+	
+    if (Head->next == Head) {
+        Head->next = NewNode;
+		NewNode->next = NewNode;
+		return true;
+    } 
+	else {
+        CLNode_t *tail = CLList_GetTail(Head);
+		NewNode->next = Head->next;
+		Head->next = NewNode;
+		tail->next = NewNode; 
+		return true;
     }
-
-    return true;
 }
 
 /**
@@ -99,25 +144,26 @@ bool CLList_HeadInsert(CLNode_t* Head, Elemtype_t data) {
   * @brief        : Insert node at the end of the list
   * @param        :
   *                @Head: the list header address
-  *                @data: the data field of a circular linked list
+  *                @Data: the data field of a circular linked list
   * @retval       : Insert successful return true otherwise return false
   * @version      : 1.0
   * @note         : None
 */
-bool CLList_TailInsert(CLNode_t* Head, Elemtype_t data) {
+bool CLList_TailInsert(CLNode_t* Head, Elemtype_t Data) {
     if (!Head) return false;
-    CLNode_t* newNode = CLList_NewNode(data);
-    if (!newNode) return false;
+    CLNode_t* NewNode = CLList_NewNode(Data);
 
-    CLNode_t* current = Head;
-    while (current->next != Head) {
-        current = current->next;
+    if (Head->next == Head) {
+        Head->next = NewNode;
+		NewNode->next = NewNode;
+		return true;
     }
-
-    current->next = newNode;
-    newNode->next = Head;
-
-    return true;
+	else{
+		CLNode_t *tail = CLList_GetTail(Head);
+		NewNode->next = tail->next;
+		tail->next = NewNode;
+		return true;
+	}
 }
 
 /**
@@ -125,41 +171,41 @@ bool CLList_TailInsert(CLNode_t* Head, Elemtype_t data) {
   * @brief        : Insert a node at a specific position in the circular linked list (1-based index)
   * @param        : 
   *                 @Head: the list header address
-  *                 @data: the data to insert
-  *                 @dest: the position to insert (starting from 1)
+  *                 @Data: the data to insert
+  *                 @Dest: the position to insert (starting from 1)
   * @retval       : true if insert successful, false otherwise
   * @version      : 1.0
   * @note         : If the list is empty, the inserted node becomes the first and loops to itself.
   *                 If inserted at position 1, Head->next and tail's next pointer will be updated.
 */
-bool CLList_InDest_Place(CLNode_t* Head, Elemtype_t data, int dest) {
-  if (!Head || dest < 1) return false;
-  CLNode_t* newNode = CLList_NewNode(data);
-  if (!newNode) return false;
+bool CLList_InDest_Place(CLNode_t* Head, Elemtype_t Data, int Dest) {
+	if (!Head || Dest <= 0) return false;
+    CLNode_t* NewNode = CLList_NewNode(Data);
+	int len = CLList_Len(Head);
+	if(Dest > len + 1) return false;
 
-  if (Head->next == NULL) {
-      Head->next = newNode;
-      newNode->next = newNode;
-      return true;
-  }
+	CLNode_t *tail = CLList_GetTail(Head);
 
-  CLNode_t* prev = Head;
-  CLNode_t* current = Head->next;
-  int count = 1;
-  while (count < dest && current->next != Head->next) {
-      prev = current;
-      current = current->next;
-      count++;
-  }
-  prev->next = newNode;
-  newNode->next = current;
-  if (dest == 1) { // 插入在首结点前
-      // 找尾结点修复尾指针
-      while (current->next != Head->next) current = current->next;
-      current->next = newNode;
-      Head->next = newNode;
-  }
-  return true;
+	if(Dest == 1)
+	{
+		NewNode->next = Head->next;
+		tail->next = NewNode;
+		Head->next = NewNode;
+		return true;
+	}
+	else if(Dest == len + 1)
+	{
+		NewNode->next = Head->next;
+		tail->next = NewNode;
+		return true;
+	}
+	CLNode_t* prev = Head->next;
+	for (int i = 1; i < Dest - 1; ++i) {
+		prev = prev->next;
+	}
+	NewNode->next = prev->next;
+	prev->next = NewNode;
+	return true;
 }
 
 /**
@@ -167,40 +213,37 @@ bool CLList_InDest_Place(CLNode_t* Head, Elemtype_t data, int dest) {
   * @brief        : Insert a node before the first node with the specified value
   * @param        : 
   *                 @Head: the list header address
-  *                 @data: the data to insert
-  *                 @dest: the target value to match
+  *                 @Data: the data to insert
+  *                 @Dest: the target value to match
   * @retval       : true if insert successful, false otherwise
   * @version      : 1.0
   * @note         : If the matching node is the head node, the inserted node will become the new head (Head->next).
   *                 Tail node's next pointer will also be updated accordingly.
 */
-bool CLList_InDest_BeforeValue(CLNode_t* Head, Elemtype_t data, int dest) {
-  if (!Head || Head->next == NULL) return false;
-  CLNode_t* current = Head->next;
-  CLNode_t* prev = NULL;
+bool CLList_InDest_BeforeValue(CLNode_t* Head, Elemtype_t Data, int Dest) {
+	if (!Head || IS_EMPTY_LIST(Head)) return false;
 
-  do {
-      if (current->data == dest) break;
-      prev = current;
-      current = current->next;
-  } while (current != Head->next);
+	CLNode_t* NewNode = CLList_NewNode(Data);
+	CLNode_t* prev = NULL;
+    CLNode_t* current = Head->next;
+    CLNode_t* tail = CLList_GetTail(Head);
 
-  if (current->data != dest) return false;
-
-  CLNode_t* newNode = CLList_NewNode(data);
-  if (!newNode) return false;
-
-  newNode->next = current;
-  if (prev == NULL) {
-      // 插入到首结点前
-      CLNode_t* tail = current;
-      while (tail->next != Head->next) tail = tail->next;
-      tail->next = newNode;
-      Head->next = newNode;
-  } else {
-      prev->next = newNode;
-  }
-  return true;
+    do {
+        if (current->data == Dest) {
+            if (prev == NULL) {
+                NewNode->next = Head->next;
+                Head->next = NewNode;
+                tail->next = NewNode;
+            } else {
+                NewNode->next = current;
+                prev->next = NewNode;
+            }
+            return true;
+        }
+        prev = current;
+        current = current->next;
+    } while (current != Head->next);
+    return false; 
 }
 
 /**
@@ -208,86 +251,89 @@ bool CLList_InDest_BeforeValue(CLNode_t* Head, Elemtype_t data, int dest) {
   * @brief        : Insert a node after the first node with the specified value
   * @param        : 
   *                 @Head: the list header address
-  *                 @data: the data to insert
-  *                 @dest: the target value to match
+  *                 @Data: the data to insert
+  *                 @Dest: the target value to match
   * @retval       : true if insert successful, false otherwise
   * @version      : 1.0
   * @note         : If the node with the given value is found, the new node is inserted immediately after it.
 */
-bool CLList_InDest_AfterValue(CLNode_t* Head, Elemtype_t data, int dest) {
-  if (!Head || Head->next == NULL) return false;
-  CLNode_t* current = Head->next;
-  do {
-      if (current->data == dest) break;
-      current = current->next;
-  } while (current != Head->next);
+bool CLList_InDest_AfterValue(CLNode_t* Head, Elemtype_t Data, int Dest) {
+	if (!Head || IS_EMPTY_LIST(Head)) return false;
 
-  if (current->data != dest) return false;
+	CLNode_t* NewNode = CLList_NewNode(Data);
+	CLNode_t* current = Head->next;
 
-  CLNode_t* newNode = CLList_NewNode(data);
-  if (!newNode) return false;
-  newNode->next = current->next;
-  current->next = newNode;
-  return true;
+	do {
+        if (current->data == Dest) {
+            NewNode->next = current->next;
+            current->next = NewNode;
+            return true;
+        }
+        current = current->next;
+    } while (current != Head->next);
+	return false; 
 }
 
 /**
   * @function name: CLList_HeadDelete
   * @brief        : Delete the first valid node (after Head)
-  * @param        : @Head: the list header address
+  * @param        : 
+  * 				@Head: the list header address
   * @retval       : Delete successful return true otherwise return false
   * @version      : 1.0
   * @note         : None
 */
 bool CLList_HeadDelete(CLNode_t* Head) {
-  if (!Head || Head->next == Head) return false;
+	if (!Head || IS_EMPTY_LIST(Head)) return false;
 
-  CLNode_t* toDelete = Head->next;
+  	CLNode_t* toDelete = Head->next;
 
-  // 如果链表只有一个有效结点
-  if (toDelete->next == Head) {
-      Head->next = Head;
-  } else {
-      // 找尾结点
-      CLNode_t* tail = Head->next;
-      while (tail->next != Head) {
-          tail = tail->next;
-      }
-      Head->next = toDelete->next;
-      tail->next = Head;
-  }
-
-  free(toDelete);
-  return true;
+	if(toDelete->next == toDelete)
+	{
+		Head->next = Head;
+	}
+	else
+	{
+		CLNode_t *tail = CLList_GetTail(Head);
+		tail->next = toDelete->next;
+		Head->next = toDelete->next;
+	}
+	toDelete->next = NULL;
+	free(toDelete);
+	return true;
 }
 
 
 /**
   * @function name: CLList_TailDelete
   * @brief        : Delete the last valid node (before Head)
-  * @param        : @Head: the list header address
+  * @param        : 
+  * 				@Head: the list header address
   * @retval       : Delete successful return true otherwise return false
   * @version      : 1.0
   * @note         : None
 */
 bool CLList_TailDelete(CLNode_t* Head) {
-    if (!Head || Head->next == Head) return false;
+    if (!Head || IS_EMPTY_LIST(Head)) return false;
+	
+	CLNode_t *toDelete = Head->next;
+	CLNode_t *prev = Head;
 
-    CLNode_t* prev = Head;
-    CLNode_t* tail = Head->next;
-
-    while (tail->next != Head) {
-        prev = tail;
-        tail = tail->next;
+	if (toDelete->next == toDelete) {
+        Head->next = Head;
+        toDelete->next = NULL;
+        free(toDelete);
+        return true;
     }
 
-    if (prev == Head) {
-        Head->next = Head; // 删除唯一节点
-    } else {
-        prev->next = Head;
-    }
-
-    free(tail);
+	while(toDelete->next != Head->next)
+	{
+		prev = toDelete;
+		toDelete = toDelete->next;
+	}
+	prev->next = Head->next;
+	toDelete->next = NULL;
+    free(toDelete);
     return true;
 }
 
@@ -296,35 +342,47 @@ bool CLList_TailDelete(CLNode_t* Head) {
   * @brief        : Delete a node by its position (1-based index)
   * @param        : 
   *                 @Head: the list header address
-  *                 @dest: the position of the node to be deleted
+  *                 @Dest: the position of the node to be deleted
   * @retval       : true if delete successful, false otherwise
   * @version      : 1.0
   * @note         : If dest is 1, deletes the head node (first valid node);
   *                 returns false if the position is invalid or list is empty
 */
-bool CLList_DelDest_Place(CLNode_t* Head, int dest) {
-  if (!Head || Head->next == NULL || dest < 1) return false;
+bool CLList_DelDest_Place(CLNode_t* Head, int Dest) {
+  	if (!Head || IS_EMPTY_LIST(Head) || Dest < 1)  return false;
+	int len = CLList_Len(Head);
+	if(Dest > len)  return false;
 
-  CLNode_t* prev = Head;
-  CLNode_t* current = Head->next;
-  int count = 1;
+	CLNode_t *prev = Head;
+    CLNode_t *toDelete = Head->next;
 
-  while (count < dest && current->next != Head->next) {
-      prev = current;
-      current = current->next;
-      count++;
-  }
+    if (Dest == 1) 
+	{
+        if (toDelete->next == toDelete) 
+		{
+            Head->next = Head;
+            toDelete->next = NULL;
+            free(toDelete);
+            return true;
+        }
 
-  if (count != dest) return false;
-
-  if (current == Head->next) {
-      // 删除首结点
-      CLList_HeadDelete(Head);
-  } else {
-      prev->next = current->next;
-      free(current);
-  }
-  return true;
+        CLNode_t* tail = CLList_GetTail(Head);
+        Head->next = toDelete->next;
+        tail->next = Head->next;
+    }
+    else 
+	{
+        for (int i = 1; i < Dest; ++i) 
+		{
+            prev = toDelete;
+            toDelete = toDelete->next;
+        }
+        prev->next = toDelete->next;
+    }
+	
+	toDelete->next = NULL;
+	free(toDelete);
+	return true;
 }
 
 /**
@@ -332,50 +390,75 @@ bool CLList_DelDest_Place(CLNode_t* Head, int dest) {
   * @brief        : Delete the first node whose data field matches the specified value
   * @param        : 
   *                 @Head: the list header address
-  *                 @data: the value to be matched for deletion
+  *                 @Data: the value to be matched for deletion
   * @retval       : true if delete successful, false otherwise
   * @version      : 1.0
   * @note         : If the matched node is the head node (first valid node),
   *                 the function calls CLList_HeadDelete; returns false if not found
 */
-bool CLList_DelDest_Value(CLNode_t* Head, Elemtype_t data) {
-  if (!Head || Head->next == NULL) return false;
-  CLNode_t* prev = Head;
-  CLNode_t* current = Head->next;
-  do {
-      if (current->data == data) break;
-      prev = current;
-      current = current->next;
-  } while (current != Head->next);
+bool CLList_DelDest_Value(CLNode_t* Head, Elemtype_t Data) {
+  	if (!Head || IS_EMPTY_LIST(Head))  return false;
+	
+	CLNode_t *toDelete = Head->next;
+	CLNode_t *prev = Head;
+	CLNode_t *tail = CLList_GetTail(Head);
 
-  if (current->data != data) return false;
+	if(toDelete->data == Data)
+	{
+		if(toDelete->next == toDelete)
+		{
+			Head->next = Head;
+			toDelete->next = NULL;
+            free(toDelete);
+            return true;
+		}
+		
+		tail->next = Head->next;
+		Head->next = toDelete->next;
+	}
+	else
+	{
+		while(toDelete->next != Head->next)
+		{
+			if(toDelete->data == Data)  break;
+			prev = toDelete;
+			toDelete =toDelete->next;
+		}
+		if(toDelete->next == Head->next && toDelete->data != Data)  return false;
+		prev->next = toDelete->next;
+	}
 
-  if (current == Head->next) {
-      // 删除首结点
-      CLList_HeadDelete(Head);
-  } else {
-      prev->next = current->next;
-      free(current);
-  }
-  return true;
+	toDelete->next = NULL;
+    free(toDelete);
+    return true;
 }
 
-
 /**
-  * @function name: CLList_Length
-  * @brief        : Calculate the number of valid nodes
-  * @param        : @Head: the list header address
-  * @retval       : Length of the list
+  * @function name: CLList_Destroy
+  * @brief        : Destroy the entire linked list
+  * @param        : 
+  *                 @Head: the list header address
+  * @retval       : true if delete successful, false otherwise
   * @version      : 1.0
-  * @note         : None
+  * @note         : none
 */
-int CLList_Length(CLNode_t* Head) {
-    if (!Head || Head->next == Head) return 0;
-    int len = 0;
-    CLNode_t* current = Head->next;
-    while (current != Head) {
-        len++;
-        current = current->next;
-    }
-    return len;
+bool  CLList_Destroy(CLNode_t* Head){
+	if(!Head) return true;
+	if(IS_EMPTY_LIST(Head))
+	{
+		free(Head);
+		return true;
+	}
+
+	CLNode_t *current = Head->next;
+	CLNode_t *next;
+	while(current->next != Head->next)
+	{
+		next = current->next;
+		current->next = NULL;
+		free(current);
+		current = next;
+	}
+	free(Head);
+	return true;
 }
